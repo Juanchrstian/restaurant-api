@@ -135,7 +135,7 @@ restaurant-api/
 ## Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/restaurant-api.git
+git clone https://github.com/juanchrstian/restaurant-api.git
 cd restaurant-api
 ```
 
