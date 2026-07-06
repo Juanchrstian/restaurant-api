@@ -61,3 +61,14 @@ func (r *repository) GetByID(
 
 	return &menu, nil
 }
+
+func (r *repository) Create(
+	ctx context.Context,
+	menu *Menu,
+) error {
+
+	return r.db.
+		WithContext(ctx).
+		Create(menu).
+		Error
+}
