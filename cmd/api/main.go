@@ -11,6 +11,7 @@ import (
 	"github.com/juanchrstian/restaurant-api/internal/router"
 	"github.com/juanchrstian/restaurant-api/internal/menu"
 
+	"github.com/juanchrstian/restaurant-api/internal/shared/cache"
 	"github.com/juanchrstian/restaurant-api/internal/shared/config"
 	"github.com/juanchrstian/restaurant-api/internal/shared/database"
 	redisdb "github.com/juanchrstian/restaurant-api/internal/shared/redis"
@@ -51,6 +52,10 @@ func main() {
 
 	log.Println("✓ Redis Connected")
 
+	cacheClient := cache.NewRedis(
+		redisClient,
+	)
+
 	// =========================================
 	// HEALTH MODULE
 	// =========================================
@@ -65,7 +70,13 @@ func main() {
 
 	menuRepository := menu.NewRepository(db)
 
-	menuService := menu.NewService(menuRepository)
+	menuService := menu.NewService(
+		
+		menuRepository,
+	
+		cacheClient,
+
+	)
 
 	menuHandler := menu.NewHandler(menuService)
 

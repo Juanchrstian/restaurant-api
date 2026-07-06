@@ -3,9 +3,10 @@ package menu
 import (
 	"net/http"
 
-	sharederrors "github.com/juanchrstian/restaurant-api/internal/shared/errors"
-
 	"github.com/gin-gonic/gin"
+
+	sharederrors "github.com/juanchrstian/restaurant-api/internal/shared/errors"
+	"github.com/juanchrstian/restaurant-api/internal/shared/response"
 )
 
 type Handler struct {
@@ -26,14 +27,21 @@ func (h *Handler) GetMenus(c *gin.Context) {
 
 	if err != nil {
 
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"INTERNAL_SERVER_ERROR",
+			"Failed to retrieve menus",
+		)
 
 		return
 	}
 
-	c.JSON(http.StatusOK, ToResponses(menus))
+	response.Success(
+		c,
+		"Menus retrieved successfully",
+		ToResponses(menus),
+	)
 }
 
 func (h *Handler) GetMenu(c *gin.Context) {
@@ -50,19 +58,30 @@ func (h *Handler) GetMenu(c *gin.Context) {
 
 		case sharederrors.ErrMenuNotFound:
 
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": err.Error(),
-			})
+			response.Error(
+				c,
+				http.StatusNotFound,
+				"MENU_NOT_FOUND",
+				"Menu not found",
+			)
 
 		default:
 
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
-			})
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"INTERNAL_SERVER_ERROR",
+				"Internal server error",
+			)
+
 		}
 
 		return
 	}
 
-	c.JSON(http.StatusOK, ToResponse(*menu))
+	response.Success(
+		c,
+		"Menu retrieved successfully",
+		ToResponse(menu),
+	)
 }
