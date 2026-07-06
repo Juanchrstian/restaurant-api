@@ -42,3 +42,25 @@ func ToResponses(menus []Menu) []MenuResponse {
 
 	return responses
 }
+
+type CreateMenuRequest struct {
+	Name        string `json:"name" validate:"required,max=100"`
+	Description string `json:"description"`
+	Price       int64  `json:"price" validate:"required,gt=0"`
+	Stock       int    `json:"stock" validate:"gte=0"`
+	Available   bool   `json:"available"`
+	ImageURL    string `json:"image_url"`
+}
+
+func (r CreateMenuRequest) ToModel() Menu {
+
+	return Menu{
+		Name:        r.Name,
+		Description: r.Description,
+		Price:       r.Price,
+		Stock:       r.Stock,
+		Available:   r.Available,
+		ImageURL:    r.ImageURL,
+	}
+
+}

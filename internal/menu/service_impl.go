@@ -1,28 +1,28 @@
 package menu
 
-import "context"
+import (
+	"context"
+	"log"
 
-import "log"
-
-import "github.com/juanchrstian/restaurant-api/internal/shared/cache"
+	"github.com/juanchrstian/restaurant-api/internal/shared/cache"
+	sharedcache "github.com/juanchrstian/restaurant-api/internal/shared/cache"
+)
 
 var _ Service = (*service)(nil)
 
 type service struct {
-	
 	repository Repository
 
 	cache cache.Cache
-
 }
 
 func NewService(
-	
+
 	repository Repository,
-	
+
 	cache cache.Cache,
-	
-	) Service {
+
+) Service {
 
 	return &service{
 
@@ -33,8 +33,8 @@ func NewService(
 }
 
 func (s *service) GetMenus(
-		ctx context.Context,
-	) ([]Menu, error) {
+	ctx context.Context,
+) ([]Menu, error) {
 
 	menus, found, err := s.getMenusFromCache(ctx)
 
@@ -70,4 +70,24 @@ func (s *service) GetMenu(
 
 	return s.repository.GetByID(ctx, id)
 
+}
+
+func (s *service) CreateMenu(
+	ctx context.Context,
+	request CreateMenuRequest,
+) (*Menu, error) {
+
+	menu := request.ToModel()
+
+	if err := s.repository.Create(ctx, &menu); err != nil {
+		return nil, err
+	}
+
+	// Cache Invalidation
+	_ = s.cache.Delete(
+		ctx,
+		sharedcache.MenuListKey,
+	)
+
+	return &menu, nil
 }
