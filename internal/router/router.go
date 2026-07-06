@@ -4,21 +4,26 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/juanchrstian/restaurant-api/internal/health"
+	"github.com/juanchrstian/restaurant-api/internal/menu"
 )
 
 func New(
 	healthHandler *health.Handler,
+	menuHandler *menu.Handler,
 ) *gin.Engine {
 
-	r := gin.New()
+	router := gin.New()
 
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
-	api := r.Group("/api/v1")
+	api := router.Group("/api/v1")
 	{
 		api.GET("/health", healthHandler.GetHealth)
+
+		api.GET("/menus", menuHandler.GetMenus)
+		api.GET("/menus/:id", menuHandler.GetMenu)
 	}
 
-	return r
+	return router
 }

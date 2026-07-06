@@ -5,8 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/juanchrstian/restaurant-api/seed"
+
 	"github.com/juanchrstian/restaurant-api/internal/health"
 	"github.com/juanchrstian/restaurant-api/internal/router"
+	"github.com/juanchrstian/restaurant-api/internal/menu"
+
 	"github.com/juanchrstian/restaurant-api/internal/shared/config"
 	"github.com/juanchrstian/restaurant-api/internal/shared/database"
 	redisdb "github.com/juanchrstian/restaurant-api/internal/shared/redis"
@@ -59,13 +63,31 @@ func main() {
 
 	healthHandler := health.NewHandler(healthService)
 
+	menuRepository := menu.NewRepository(db)
+
+	menuService := menu.NewService(menuRepository)
+
+	menuHandler := menu.NewHandler(menuService)
+
 	// =========================================
 	// ROUTER
 	// =========================================
 
 	engine := router.New(
 		healthHandler,
+
+		menuHandler,
 	)
+
+	// =========================================
+	// DATABASE SEED
+	// =========================================
+
+	if err := seed.Run(db); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("✓ Database Seeded")
 
 	// =========================================
 	// HTTP SERVER
@@ -86,7 +108,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Menghindari warning "unused variable"
-	_ = db
-	_ = redisClient
+	_=redisClient
+
 }
