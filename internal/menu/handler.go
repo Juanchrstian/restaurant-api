@@ -85,3 +85,49 @@ func (h *Handler) GetMenu(c *gin.Context) {
 		ToResponse(menu),
 	)
 }
+
+func (h *Handler) CreateMenu(
+	c *gin.Context,
+) {
+
+	ctx := c.Request.Context()
+
+	var request CreateMenuRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"Invalid request body",
+		)
+
+		return
+
+	}
+
+	menu, err := h.service.CreateMenu(
+		ctx,
+		request,
+	)
+
+	if err != nil {
+
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"INTERNAL_SERVER_ERROR",
+			"Failed to create menu",
+		)
+
+		return
+
+	}
+
+	response.Success(
+		c,
+		"Menu created successfully",
+		ToResponse(menu),
+	)
+}

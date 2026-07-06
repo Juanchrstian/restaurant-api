@@ -21,8 +21,12 @@ func New(
 	{
 		api.GET("/health", healthHandler.GetHealth)
 
-		api.GET("/menus", menuHandler.GetMenus)
-		api.GET("/menus/:id", menuHandler.GetMenu)
+		menus := api.Group("/menus")
+		{
+			menus.GET("", menuHandler.GetMenus)
+			menus.GET("/:id", menuHandler.GetMenu)
+			menus.POST("", menuHandler.CreateMenu)
+		}
 	}
 
 	return router
