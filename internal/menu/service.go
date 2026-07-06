@@ -8,4 +8,6 @@ type Service interface {
 	GetMenu(ctx context.Context, id string) (*Menu, error)
 
 	CreateMenu(ctx context.Context, request CreateMenuRequest) (*Menu, error)
+
+	UpdateMenu(ctx context.Context, id string, request UpdateMenuRequest) (*Menu, error)
 }

@@ -8,4 +8,6 @@ type Repository interface {
 	GetByID(ctx context.Context, id string) (*Menu, error)
 
 	Create(ctx context.Context, menu *Menu) error
+
+	Update(ctx context.Context, menu *Menu) error
 }

@@ -91,3 +91,28 @@ func (s *service) CreateMenu(
 
 	return &menu, nil
 }
+
+func (s *service) UpdateMenu(
+	ctx context.Context,
+	id string,
+	request UpdateMenuRequest,
+) (*Menu, error) {
+
+	menu, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Apply(menu)
+
+	if err := s.repository.Update(ctx, menu); err != nil {
+		return nil, err
+	}
+
+	_ = s.cache.Delete(
+		ctx,
+		sharedcache.MenuListKey,
+	)
+
+	return menu, nil
+}

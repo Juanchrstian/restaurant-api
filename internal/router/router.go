@@ -26,6 +26,7 @@ func New(
 			menus.GET("", menuHandler.GetMenus)
 			menus.GET("/:id", menuHandler.GetMenu)
 			menus.POST("", menuHandler.CreateMenu)
+			menus.PUT("/:id", menuHandler.UpdateMenu)
 		}
 	}
 

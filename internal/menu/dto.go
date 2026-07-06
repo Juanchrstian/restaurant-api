@@ -64,3 +64,25 @@ func (r CreateMenuRequest) ToModel() Menu {
 	}
 
 }
+
+type UpdateMenuRequest struct {
+	Name        string `json:"name" validate:"required,max=100"`
+	Description string `json:"description"`
+	Price       int64  `json:"price" validate:"gt=0"`
+	Stock       int    `json:"stock" validate:"gte=0"`
+	Available   bool   `json:"available"`
+	ImageURL    string `json:"image_url"`
+}
+
+func (r UpdateMenuRequest) Apply(
+	menu *Menu,
+) {
+
+	menu.Name = r.Name
+	menu.Description = r.Description
+	menu.Price = r.Price
+	menu.Stock = r.Stock
+	menu.Available = r.Available
+	menu.ImageURL = r.ImageURL
+
+}

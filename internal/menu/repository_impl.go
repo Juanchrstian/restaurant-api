@@ -72,3 +72,14 @@ func (r *repository) Create(
 		Create(menu).
 		Error
 }
+
+func (r *repository) Update(
+	ctx context.Context,
+	menu *Menu,
+) error {
+
+	return r.db.
+		WithContext(ctx).
+		Save(menu).
+		Error
+}
