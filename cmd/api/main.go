@@ -9,6 +9,7 @@ import (
 
 	"github.com/juanchrstian/restaurant-api/internal/health"
 	"github.com/juanchrstian/restaurant-api/internal/menu"
+	"github.com/juanchrstian/restaurant-api/internal/order"
 	"github.com/juanchrstian/restaurant-api/internal/router"
 	"github.com/juanchrstian/restaurant-api/internal/session"
 
@@ -89,6 +90,17 @@ func main() {
 
 	sessionHandler := session.NewHandler(sessionService)
 
+	orderRepository := order.NewRepository(db)
+
+	orderService := order.NewService(
+
+		orderRepository,
+
+		sessionService,
+	)
+
+	orderHandler := order.NewHandler(orderService)
+
 	// =========================================
 	// ROUTER
 	// =========================================
@@ -99,6 +111,8 @@ func main() {
 		menuHandler,
 
 		sessionHandler,
+
+		orderHandler,
 	)
 
 	// =========================================

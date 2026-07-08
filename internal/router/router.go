@@ -5,6 +5,7 @@ import (
 
 	"github.com/juanchrstian/restaurant-api/internal/health"
 	"github.com/juanchrstian/restaurant-api/internal/menu"
+	"github.com/juanchrstian/restaurant-api/internal/order"
 	"github.com/juanchrstian/restaurant-api/internal/session"
 )
 
@@ -12,6 +13,7 @@ func New(
 	healthHandler *health.Handler,
 	menuHandler *menu.Handler,
 	sessionHandler *session.Handler,
+	orderHandler *order.Handler,
 ) *gin.Engine {
 
 	router := gin.New()
@@ -38,6 +40,11 @@ func New(
 			sessions.POST("", sessionHandler.OpenSession)
 			sessions.GET("/active", sessionHandler.GetActiveSession)
 			sessions.PATCH("/close", sessionHandler.CloseSession)
+		}
+
+		orders := api.Group("/orders")
+		{
+			orders.POST("", orderHandler.CreateOrder)
 		}
 
 	}
