@@ -1,7 +1,9 @@
 package menu
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -24,7 +26,43 @@ func (h *Handler) GetMenus(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	menus, err := h.service.GetMenus(ctx)
+	filter := MenuFilter{
+		Search: c.Query("search"),
+		SortBy: c.DefaultQuery("sort", "name"),
+		Order:  c.DefaultQuery("order", "asc"),
+	}
+
+	// Parse available=true|false
+	if available := c.Query("available"); available != "" {
+
+		value, err := strconv.ParseBool(available)
+		if err == nil {
+			filter.Available = &value
+		}
+
+	}
+
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		limit = 10
+	}
+
+	filter.Page = page
+	filter.Limit = limit
+
+	filter.Normalize()
+
+	log.Printf("%+v\n", filter)
+
+	menus, err := h.service.GetMenus(
+		ctx,
+		filter,
+	)
 	if err != nil {
 
 		response.Error(
@@ -202,5 +240,43 @@ func (h *Handler) UpdateMenu(c *gin.Context) {
 		"Menu updated successfully",
 		ToResponse(menu),
 	)
+
+}
+
+func (h *Handler) DeleteMenu(c *gin.Context) {
+
+	ctx := c.Request.Context()
+
+	id := c.Param("id")
+
+	err := h.service.DeleteMenu(ctx, id)
+
+	if err != nil {
+
+		switch err {
+
+		case sharederrors.ErrMenuNotFound:
+
+			response.Error(
+				c,
+				http.StatusNotFound,
+				"MENU_NOT_FOUND",
+				"Menu not found",
+			)
+
+		default:
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"INTERNAL_SERVER_ERROR",
+				"Failed to delete menu",
+			)
+		}
+
+		return
+
+	}
+
+	c.Status(http.StatusNoContent)
 
 }

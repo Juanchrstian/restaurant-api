@@ -3,17 +3,16 @@ package menu
 import (
 	"context"
 	"encoding/json"
-
-	sharedcache "github.com/juanchrstian/restaurant-api/internal/shared/cache"
 )
 
 func (s *service) getMenusFromCache(
 	ctx context.Context,
+	cacheKey string,
 ) ([]Menu, bool, error) {
 
 	data, err := s.cache.Get(
 		ctx,
-		sharedcache.MenuListKey,
+		cacheKey,
 	)
 
 	if err != nil {
@@ -35,6 +34,7 @@ func (s *service) getMenusFromCache(
 
 func (s *service) saveMenusToCache(
 	ctx context.Context,
+	cacheKey string,
 	menus []Menu,
 ) {
 
@@ -46,7 +46,7 @@ func (s *service) saveMenusToCache(
 
 	_ = s.cache.Set(
 		ctx,
-		sharedcache.MenuListKey,
+		cacheKey,
 		data,
 		MenuCacheTTL,
 	)

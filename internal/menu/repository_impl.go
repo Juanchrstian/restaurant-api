@@ -2,6 +2,7 @@ package menu
 
 import (
 	"context"
+	"strings"
 
 	sharederrors "github.com/juanchrstian/restaurant-api/internal/shared/errors"
 	"gorm.io/gorm"
@@ -19,18 +20,43 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) GetAll(
 	ctx context.Context,
+	filter MenuFilter,
 ) ([]Menu, error) {
 
 	var menus []Menu
 
-	err := r.db.
+	query := r.db.
 		WithContext(ctx).
-		Where("available = ?", true).
-		Order("name ASC").
-		Find(&menus).
-		Error
+		Model(&Menu{})
 
-	if err != nil {
+	if filter.Available != nil {
+		query = query.Where(
+			"available = ?",
+			*filter.Available,
+		)
+	}
+
+	if filter.Search != "" {
+		query = query.Where(
+			"LOWER(name) LIKE ?",
+			"%"+strings.ToLower(filter.Search)+"%",
+		)
+	}
+
+	query = query.Order(filter.OrderClause()).
+		Order("name ASC")
+
+	offset := (filter.Page - 1) * filter.Limit
+
+	query = query.
+		Offset(offset).
+		Limit(filter.Limit)
+
+	if err := query.
+		Debug().
+		Find(&menus).
+		Error; err != nil {
+
 		return nil, err
 	}
 
@@ -81,5 +107,16 @@ func (r *repository) Update(
 	return r.db.
 		WithContext(ctx).
 		Save(menu).
+		Error
+}
+
+func (r *repository) Delete(
+	ctx context.Context,
+	menu *Menu,
+) error {
+
+	return r.db.
+		WithContext(ctx).
+		Delete(menu).
 		Error
 }

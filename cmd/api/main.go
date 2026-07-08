@@ -8,8 +8,9 @@ import (
 	"github.com/juanchrstian/restaurant-api/seed"
 
 	"github.com/juanchrstian/restaurant-api/internal/health"
-	"github.com/juanchrstian/restaurant-api/internal/router"
 	"github.com/juanchrstian/restaurant-api/internal/menu"
+	"github.com/juanchrstian/restaurant-api/internal/router"
+	"github.com/juanchrstian/restaurant-api/internal/session"
 
 	"github.com/juanchrstian/restaurant-api/internal/shared/cache"
 	"github.com/juanchrstian/restaurant-api/internal/shared/config"
@@ -71,14 +72,22 @@ func main() {
 	menuRepository := menu.NewRepository(db)
 
 	menuService := menu.NewService(
-		
-		menuRepository,
-	
-		cacheClient,
 
+		menuRepository,
+
+		cacheClient,
 	)
 
 	menuHandler := menu.NewHandler(menuService)
+
+	sessionRepository := session.NewRepository(db)
+
+	sessionService := session.NewService(
+
+		sessionRepository,
+	)
+
+	sessionHandler := session.NewHandler(sessionService)
 
 	// =========================================
 	// ROUTER
@@ -88,6 +97,8 @@ func main() {
 		healthHandler,
 
 		menuHandler,
+
+		sessionHandler,
 	)
 
 	// =========================================
@@ -118,7 +129,4 @@ func main() {
 		err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
-
-	_=redisClient
-
 }

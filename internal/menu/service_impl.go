@@ -2,7 +2,6 @@ package menu
 
 import (
 	"context"
-	"log"
 
 	"github.com/juanchrstian/restaurant-api/internal/shared/cache"
 	sharedcache "github.com/juanchrstian/restaurant-api/internal/shared/cache"
@@ -34,32 +33,38 @@ func NewService(
 
 func (s *service) GetMenus(
 	ctx context.Context,
+	filter MenuFilter,
 ) ([]Menu, error) {
 
-	menus, found, err := s.getMenusFromCache(ctx)
-
-	if err == nil && found {
-
-		log.Println("CACHE HIT")
-
-		return menus, nil
-
-	}
-
-	log.Println("CACHE MISS")
-
-	menus, err = s.repository.GetAll(ctx)
-
-	if err != nil {
-		return nil, err
-	}
-
-	s.saveMenusToCache(
+	return s.repository.GetAll(
 		ctx,
-		menus,
+		filter,
 	)
 
-	return menus, nil
+	// menus, found, err := s.getMenusFromCache(ctx)
+
+	// if err == nil && found {
+
+	// 	log.Println("CACHE HIT")
+
+	// 	return menus, nil
+
+	// }
+
+	// log.Println("CACHE MISS")
+
+	// menus, err = s.repository.GetAll(ctx, filter)
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// s.saveMenusToCache(
+	// 	ctx,
+	// 	menus,
+	// )
+
+	// return menus, nil
 
 }
 
@@ -115,4 +120,26 @@ func (s *service) UpdateMenu(
 	)
 
 	return menu, nil
+}
+
+func (s *service) DeleteMenu(
+	ctx context.Context,
+	id string,
+) error {
+
+	menu, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err := s.repository.Delete(ctx, menu); err != nil {
+		return err
+	}
+
+	_ = s.cache.Delete(
+		ctx,
+		sharedcache.MenuListKey,
+	)
+
+	return nil
 }
