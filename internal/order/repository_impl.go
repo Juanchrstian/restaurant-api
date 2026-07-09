@@ -57,3 +57,50 @@ func (r *repository) Update(
 		Save(order).
 		Error
 }
+
+func (r *repository) CreateItem(
+	ctx context.Context,
+	item *OrderItem,
+) error {
+
+	return r.db.
+		WithContext(ctx).
+		Create(item).
+		Error
+}
+
+func (r *repository) WithTransaction(
+	tx *gorm.DB,
+) Repository {
+
+	return &repository{
+		db: tx,
+	}
+
+}
+
+func (r *repository) DB() *gorm.DB {
+	return r.db
+}
+
+func (r *repository) GetDetail(
+	ctx context.Context,
+	id string,
+) (*Order, error) {
+
+	var order Order
+
+	err := r.db.
+		WithContext(ctx).
+		Preload("Items").
+		Preload("Items.Menu").
+		Where("id = ?", id).
+		First(&order).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &order, nil
+}

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/juanchrstian/restaurant-api/internal/menu"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,8 @@ type Order struct {
 	UpdatedAt time.Time
 
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+
+	Items []OrderItem `gorm:"foreignKey:OrderID"`
 }
 
 type OrderItem struct {
@@ -38,4 +41,6 @@ type OrderItem struct {
 	Subtotal int64 `gorm:"not null"`
 
 	CreatedAt time.Time
+
+	Menu menu.Menu `gorm:"foreignKey:MenuID"`
 }

@@ -45,6 +45,8 @@ func New(
 		orders := api.Group("/orders")
 		{
 			orders.POST("", orderHandler.CreateOrder)
+			orders.POST("/:id/items", orderHandler.AddItem)
+			orders.GET("/:id", orderHandler.GetOrder)
 		}
 
 	}

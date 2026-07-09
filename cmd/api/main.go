@@ -96,6 +96,8 @@ func main() {
 
 		orderRepository,
 
+		menuRepository,
+
 		sessionService,
 	)
 
