@@ -47,6 +47,7 @@ func New(
 			orders.POST("", orderHandler.CreateOrder)
 			orders.POST("/:id/items", orderHandler.AddItem)
 			orders.GET("/:id", orderHandler.GetOrder)
+			orders.DELETE("/:orderId/items/:itemId", orderHandler.RemoveItem)
 		}
 
 	}

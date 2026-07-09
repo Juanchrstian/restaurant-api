@@ -17,4 +17,17 @@ type Service interface {
 		ctx context.Context,
 		id string,
 	) (*Order, error)
+
+	UpdateItem(
+		ctx context.Context,
+		orderID string,
+		itemID string,
+		request UpdateOrderItemRequest,
+	) (*OrderItem, error)
+
+	RemoveItem(
+		ctx context.Context,
+		orderID string,
+		itemID string,
+	) error
 }

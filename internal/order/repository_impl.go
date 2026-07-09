@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 
+	sharederrors "github.com/juanchrstian/restaurant-api/internal/shared/errors"
 	"gorm.io/gorm"
 )
 
@@ -103,4 +104,80 @@ func (r *repository) GetDetail(
 	}
 
 	return &order, nil
+}
+
+func (r *repository) GetItemByID(
+	ctx context.Context,
+	itemID string,
+) (*OrderItem, error) {
+
+	var item OrderItem
+
+	err := r.db.
+		WithContext(ctx).
+		First(&item, "id = ?", itemID).
+		Error
+
+	if err != nil {
+
+		if err == gorm.ErrRecordNotFound {
+			return nil, sharederrors.ErrOrderItemNotFound
+		}
+
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func (r *repository) GetItemByMenu(
+	ctx context.Context,
+	orderID string,
+	menuID string,
+) (*OrderItem, error) {
+
+	var item OrderItem
+
+	err := r.db.
+		WithContext(ctx).
+		Where(
+			"order_id = ? AND menu_id = ?",
+			orderID,
+			menuID,
+		).
+		First(&item).
+		Error
+
+	if err != nil {
+
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func (r *repository) UpdateItem(
+	ctx context.Context,
+	item *OrderItem,
+) error {
+
+	return r.db.
+		WithContext(ctx).
+		Save(item).
+		Error
+}
+
+func (r *repository) DeleteItem(
+	ctx context.Context,
+	item *OrderItem,
+) error {
+
+	return r.db.
+		WithContext(ctx).
+		Delete(item).
+		Error
 }

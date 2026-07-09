@@ -82,6 +82,8 @@ type OrderDetailResponse struct {
 }
 
 type OrderItemDetailResponse struct {
+	ID string `json:"id"`
+
 	MenuID string `json:"menu_id"`
 
 	MenuName string `json:"menu_name"`
@@ -108,6 +110,8 @@ func ToDetailResponse(
 		items = append(
 			items,
 			OrderItemDetailResponse{
+				ID: item.ID.String(),
+
 				MenuID: item.MenuID.String(),
 
 				MenuName: item.Menu.Name,
@@ -134,4 +138,8 @@ func ToDetailResponse(
 
 		Items: items,
 	}
+}
+
+type UpdateOrderItemRequest struct {
+	Quantity int `json:"quantity" validate:"required,min=1"`
 }

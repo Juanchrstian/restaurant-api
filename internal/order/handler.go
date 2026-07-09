@@ -179,3 +179,51 @@ func (h *Handler) GetOrder(
 		ToDetailResponse(order),
 	)
 }
+
+func (h *Handler) RemoveItem(
+	c *gin.Context,
+) {
+
+	ctx := c.Request.Context()
+
+	orderID := c.Param("orderId")
+	itemID := c.Param("itemId")
+
+	err := h.service.RemoveItem(
+		ctx,
+		orderID,
+		itemID,
+	)
+	if err != nil {
+
+		switch err {
+
+		case sharederrors.ErrOrderItemNotFound:
+
+			response.Error(
+				c,
+				http.StatusNotFound,
+				"ORDER_ITEM_NOT_FOUND",
+				"Order item not found",
+			)
+
+		default:
+
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"INTERNAL_SERVER_ERROR",
+				"Failed to remove item",
+			)
+
+		}
+
+		return
+	}
+
+	response.Success(
+		c,
+		"Item removed successfully",
+		nil,
+	)
+}

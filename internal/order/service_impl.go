@@ -64,11 +64,7 @@ func (s *service) AddItem(
 	// GET ORDER
 	// =====================================
 
-	order, err := s.repository.GetByID(
-		ctx,
-		orderID,
-	)
-
+	order, err := s.repository.GetByID(ctx, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +77,6 @@ func (s *service) AddItem(
 		ctx,
 		request.MenuID,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -99,16 +94,57 @@ func (s *service) AddItem(
 	}
 
 	// =====================================
-	// CALCULATE SUBTOTAL
+	// CHECK EXISTING ITEM
+	// =====================================
+
+	item, err := s.repository.GetItemByMenu(
+		ctx,
+		orderID,
+		request.MenuID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// =====================================
+	// ITEM ALREADY EXISTS
+	// =====================================
+
+	if item != nil {
+
+		item.Quantity += request.Quantity
+
+		item.Subtotal = int64(item.Quantity) * item.Price
+
+		if err := s.repository.UpdateItem(
+			ctx,
+			item,
+		); err != nil {
+
+			return nil, err
+		}
+
+		order.TotalAmount += int64(request.Quantity) * menu.Price
+
+		if err := s.repository.Update(
+			ctx,
+			order,
+		); err != nil {
+
+			return nil, err
+		}
+
+		return item, nil
+	}
+
+	// =====================================
+	// CREATE NEW ITEM
 	// =====================================
 
 	subtotal := int64(request.Quantity) * menu.Price
 
-	// =====================================
-	// CREATE ORDER ITEM
-	// =====================================
-
-	item := &OrderItem{
+	item = &OrderItem{
 		OrderID:  order.ID,
 		MenuID:   menu.ID,
 		Quantity: request.Quantity,
@@ -151,4 +187,104 @@ func (s *service) GetOrder(
 		id,
 	)
 
+}
+
+func (s *service) UpdateItem(
+	ctx context.Context,
+	orderID string,
+	itemID string,
+	request UpdateOrderItemRequest,
+) (*OrderItem, error) {
+
+	order, err := s.repository.GetByID(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	item, err := s.repository.GetItemByID(ctx, itemID)
+	if err != nil {
+		return nil, err
+	}
+
+	if item.OrderID != order.ID {
+		return nil, sharederrors.ErrOrderItemNotFound
+	}
+
+	menu, err := s.menuRepository.GetByID(
+		ctx,
+		item.MenuID.String(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if menu.Stock < request.Quantity {
+		return nil, sharederrors.ErrInsufficientStock
+	}
+
+	oldSubtotal := item.Subtotal
+	newSubtotal := int64(request.Quantity) * item.Price
+
+	item.Quantity = request.Quantity
+	item.Subtotal = newSubtotal
+
+	order.TotalAmount =
+		order.TotalAmount -
+			oldSubtotal +
+			newSubtotal
+
+	if err := s.repository.UpdateItem(
+		ctx,
+		item,
+	); err != nil {
+
+		return nil, err
+	}
+
+	if err := s.repository.Update(
+		ctx,
+		order,
+	); err != nil {
+
+		return nil, err
+	}
+
+	return item, nil
+}
+
+func (s *service) RemoveItem(
+	ctx context.Context,
+	orderID string,
+	itemID string,
+) error {
+
+	order, err := s.repository.GetByID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	item, err := s.repository.GetItemByID(ctx, itemID)
+	if err != nil {
+		return err
+	}
+
+	if item.OrderID != order.ID {
+		return sharederrors.ErrOrderItemNotFound
+	}
+
+	order.TotalAmount -= item.Subtotal
+
+	if order.TotalAmount < 0 {
+		order.TotalAmount = 0
+	}
+
+	if err := s.repository.DeleteItem(ctx, item); err != nil {
+		return err
+	}
+
+	if err := s.repository.Update(ctx, order); err != nil {
+		return err
+	}
+
+	return nil
 }

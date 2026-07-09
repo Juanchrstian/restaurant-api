@@ -37,4 +37,25 @@ type Repository interface {
 		ctx context.Context,
 		id string,
 	) (*Order, error)
+
+	GetItemByID(
+		ctx context.Context,
+		itemID string,
+	) (*OrderItem, error)
+
+	GetItemByMenu(
+		ctx context.Context,
+		orderID string,
+		menuID string,
+	) (*OrderItem, error)
+
+	UpdateItem(
+		ctx context.Context,
+		item *OrderItem,
+	) error
+
+	DeleteItem(
+		ctx context.Context,
+		item *OrderItem,
+	) error
 }
