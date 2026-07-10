@@ -93,6 +93,7 @@ func main() {
 	orderRepository := order.NewRepository(db)
 
 	orderService := order.NewService(
+		db,
 
 		orderRepository,
 

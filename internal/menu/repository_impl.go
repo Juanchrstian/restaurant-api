@@ -120,3 +120,13 @@ func (r *repository) Delete(
 		Delete(menu).
 		Error
 }
+
+func (r *repository) WithTransaction(
+	tx *gorm.DB,
+) Repository {
+
+	return &repository{
+		db: tx,
+	}
+
+}

@@ -58,4 +58,9 @@ type Repository interface {
 		ctx context.Context,
 		item *OrderItem,
 	) error
+
+	GetItems(
+		ctx context.Context,
+		orderID string,
+	) ([]OrderItem, error)
 }

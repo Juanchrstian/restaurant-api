@@ -1,8 +1,16 @@
 package menu
 
-import "context"
+import (
+	"context"
+
+	"gorm.io/gorm"
+)
 
 type Repository interface {
+	WithTransaction(
+		tx *gorm.DB,
+	) Repository
+
 	GetAll(ctx context.Context, filter MenuFilter) ([]Menu, error)
 
 	GetByID(ctx context.Context, id string) (*Menu, error)

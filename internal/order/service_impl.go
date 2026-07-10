@@ -7,11 +7,14 @@ import (
 	"github.com/juanchrstian/restaurant-api/internal/menu"
 	"github.com/juanchrstian/restaurant-api/internal/session"
 	sharederrors "github.com/juanchrstian/restaurant-api/internal/shared/errors"
+	"gorm.io/gorm"
 )
 
 var _ Service = (*service)(nil)
 
 type service struct {
+	db *gorm.DB
+
 	repository Repository
 
 	menuRepository menu.Repository
@@ -20,6 +23,7 @@ type service struct {
 }
 
 func NewService(
+	db *gorm.DB,
 	repository Repository,
 	menuRepository menu.Repository,
 	sessionService session.Service,
@@ -296,47 +300,117 @@ func (s *service) PayOrder(
 	request PaymentRequest,
 ) (*Order, error) {
 
-	order, err := s.repository.GetByID(
-		ctx,
-		orderID,
-	)
+	var paidOrder *Order
+
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+
+		// =====================================
+		// TRANSACTION REPOSITORIES
+		// =====================================
+
+		orderRepository := s.repository.WithTransaction(tx)
+		menuRepository := s.menuRepository.WithTransaction(tx)
+
+		// =====================================
+		// GET ORDER
+		// =====================================
+
+		order, err := orderRepository.GetByID(
+			ctx,
+			orderID,
+		)
+		if err != nil {
+			return err
+		}
+
+		// =====================================
+		// VALIDATION
+		// =====================================
+
+		if order.Status == OrderPaid {
+			return sharederrors.ErrOrderAlreadyPaid
+		}
+
+		if order.TotalAmount == 0 {
+			return sharederrors.ErrEmptyOrder
+		}
+
+		if request.PaidAmount < order.TotalAmount {
+			return sharederrors.ErrInsufficientPayment
+		}
+
+		// =====================================
+		// PAYMENT
+		// =====================================
+
+		change := request.PaidAmount - order.TotalAmount
+		now := time.Now()
+
+		order.PaymentMethod = &request.PaymentMethod
+		order.PaidAmount = &request.PaidAmount
+		order.ChangeAmount = &change
+		order.PaidAt = &now
+		order.Status = OrderPaid
+
+		// =====================================
+		// UPDATE ORDER
+		// =====================================
+
+		if err := orderRepository.Update(
+			ctx,
+			order,
+		); err != nil {
+			return err
+		}
+
+		// =====================================
+		// GET ORDER ITEMS
+		// =====================================
+
+		items, err := orderRepository.GetItems(
+			ctx,
+			order.ID.String(),
+		)
+		if err != nil {
+			return err
+		}
+
+		// =====================================
+		// REDUCE MENU STOCK
+		// =====================================
+
+		for _, item := range items {
+
+			menu, err := menuRepository.GetByID(
+				ctx,
+				item.MenuID.String(),
+			)
+			if err != nil {
+				return err
+			}
+
+			if menu.Stock < item.Quantity {
+				return sharederrors.ErrInsufficientStock
+			}
+
+			menu.Stock -= item.Quantity
+
+			if err := menuRepository.Update(
+				ctx,
+				menu,
+			); err != nil {
+				return err
+			}
+		}
+
+		paidOrder = order
+
+		return nil
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	if order.Status == OrderPaid {
-		return nil, sharederrors.ErrOrderAlreadyPaid
-	}
-
-	if order.TotalAmount == 0 {
-		return nil, sharederrors.ErrEmptyOrder
-	}
-
-	if request.PaidAmount < order.TotalAmount {
-		return nil, sharederrors.ErrInsufficientPayment
-	}
-
-	change := request.PaidAmount - order.TotalAmount
-
-	now := time.Now()
-
-	order.PaymentMethod = &request.PaymentMethod
-
-	order.PaidAmount = &request.PaidAmount
-
-	order.ChangeAmount = &change
-
-	order.PaidAt = &now
-
-	order.Status = OrderPaid
-
-	if err := s.repository.Update(
-		ctx,
-		order,
-	); err != nil {
-
-		return nil, err
-	}
-	return order, nil
+	return paidOrder, nil
 }

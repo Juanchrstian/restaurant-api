@@ -181,3 +181,23 @@ func (r *repository) DeleteItem(
 		Delete(item).
 		Error
 }
+
+func (r *repository) GetItems(
+	ctx context.Context,
+	orderID string,
+) ([]OrderItem, error) {
+
+	var items []OrderItem
+
+	err := r.db.
+		WithContext(ctx).
+		Where("order_id = ?", orderID).
+		Find(&items).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
