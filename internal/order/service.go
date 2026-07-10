@@ -30,4 +30,10 @@ type Service interface {
 		orderID string,
 		itemID string,
 	) error
+
+	PayOrder(
+		ctx context.Context,
+		orderID string,
+		request PaymentRequest,
+	) (*Order, error)
 }

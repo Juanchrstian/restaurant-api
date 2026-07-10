@@ -1,0 +1,11 @@
+ALTER TABLE orders
+ADD COLUMN payment_method VARCHAR(20);
+
+ALTER TABLE orders
+ADD COLUMN paid_amount BIGINT;
+
+ALTER TABLE orders
+ADD COLUMN change_amount BIGINT;
+
+ALTER TABLE orders
+ADD COLUMN paid_at TIMESTAMP;

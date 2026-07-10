@@ -143,3 +143,41 @@ func ToDetailResponse(
 type UpdateOrderItemRequest struct {
 	Quantity int `json:"quantity" validate:"required,min=1"`
 }
+
+type PaymentRequest struct {
+	PaymentMethod PaymentMethod `json:"payment_method" validate:"required"`
+	PaidAmount    int64         `json:"paid_amount" validate:"required,min=1"`
+}
+
+type PaymentResponse struct {
+	OrderID string `json:"order_id"`
+
+	PaymentMethod string `json:"payment_method"`
+
+	TotalAmount int64 `json:"total_amount"`
+
+	PaidAmount int64 `json:"paid_amount"`
+
+	ChangeAmount int64 `json:"change_amount"`
+
+	Status string `json:"status"`
+}
+
+func ToPaymentResponse(
+	order *Order,
+) PaymentResponse {
+
+	return PaymentResponse{
+		OrderID: order.ID.String(),
+
+		PaymentMethod: string(*order.PaymentMethod),
+
+		TotalAmount: order.TotalAmount,
+
+		PaidAmount: *order.PaidAmount,
+
+		ChangeAmount: *order.ChangeAmount,
+
+		Status: string(order.Status),
+	}
+}

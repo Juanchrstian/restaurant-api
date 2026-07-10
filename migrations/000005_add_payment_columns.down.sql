@@ -1,0 +1,11 @@
+ALTER TABLE orders
+DROP COLUMN IF EXISTS paid_at;
+
+ALTER TABLE orders
+DROP COLUMN IF EXISTS change_amount;
+
+ALTER TABLE orders
+DROP COLUMN IF EXISTS paid_amount;
+
+ALTER TABLE orders
+DROP COLUMN IF EXISTS payment_method;

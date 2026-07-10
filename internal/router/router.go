@@ -48,6 +48,7 @@ func New(
 			orders.POST("/:id/items", orderHandler.AddItem)
 			orders.GET("/:id", orderHandler.GetOrder)
 			orders.DELETE("/:orderId/items/:itemId", orderHandler.RemoveItem)
+			orders.PATCH("/:id/payment", orderHandler.PayOrder)
 		}
 
 	}

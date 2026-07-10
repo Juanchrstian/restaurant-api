@@ -227,3 +227,101 @@ func (h *Handler) RemoveItem(
 		nil,
 	)
 }
+
+func (h *Handler) PayOrder(
+	c *gin.Context,
+) {
+
+	ctx := c.Request.Context()
+
+	orderID := c.Param("id")
+
+	var request PaymentRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"Invalid request body",
+		)
+
+		return
+	}
+
+	if err := sharedvalidator.Validate(request); err != nil {
+
+		response.Validation(
+			c,
+			sharedvalidator.ParseErrors(err),
+		)
+
+		return
+	}
+
+	order, err := h.service.PayOrder(
+		ctx,
+		orderID,
+		request,
+	)
+
+	if err != nil {
+
+		switch err {
+
+		case sharederrors.ErrOrderAlreadyPaid:
+
+			response.Error(
+				c,
+				http.StatusConflict,
+				"ORDER_ALREADY_PAID",
+				"Order already paid",
+			)
+
+		case sharederrors.ErrInsufficientPayment:
+
+			response.Error(
+				c,
+				http.StatusBadRequest,
+				"INSUFFICIENT_PAYMENT",
+				"Paid amount is less than total amount",
+			)
+
+		case sharederrors.ErrEmptyOrder:
+
+			response.Error(
+				c,
+				http.StatusBadRequest,
+				"EMPTY_ORDER",
+				"Order has no items",
+			)
+
+		case sharederrors.ErrOrderNotFound:
+
+			response.Error(
+				c,
+				http.StatusNotFound,
+				"ORDER_NOT_FOUND",
+				"Order not found",
+			)
+
+		default:
+
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"INTERNAL_SERVER_ERROR",
+				"Failed to process payment",
+			)
+		}
+
+		return
+	}
+
+	response.Success(
+		c,
+		"Payment completed successfully",
+		ToPaymentResponse(order),
+	)
+}

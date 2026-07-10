@@ -25,6 +25,18 @@ type Order struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 
 	Items []OrderItem `gorm:"foreignKey:OrderID"`
+
+	// =========================
+	// PAYMENT
+	// =========================
+
+	PaymentMethod *PaymentMethod
+
+	PaidAmount *int64
+
+	ChangeAmount *int64
+
+	PaidAt *time.Time
 }
 
 type OrderItem struct {

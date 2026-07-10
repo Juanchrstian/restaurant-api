@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"time"
 
 	"github.com/juanchrstian/restaurant-api/internal/menu"
 	"github.com/juanchrstian/restaurant-api/internal/session"
@@ -287,4 +288,55 @@ func (s *service) RemoveItem(
 	}
 
 	return nil
+}
+
+func (s *service) PayOrder(
+	ctx context.Context,
+	orderID string,
+	request PaymentRequest,
+) (*Order, error) {
+
+	order, err := s.repository.GetByID(
+		ctx,
+		orderID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if order.Status == OrderPaid {
+		return nil, sharederrors.ErrOrderAlreadyPaid
+	}
+
+	if order.TotalAmount == 0 {
+		return nil, sharederrors.ErrEmptyOrder
+	}
+
+	if request.PaidAmount < order.TotalAmount {
+		return nil, sharederrors.ErrInsufficientPayment
+	}
+
+	change := request.PaidAmount - order.TotalAmount
+
+	now := time.Now()
+
+	order.PaymentMethod = &request.PaymentMethod
+
+	order.PaidAmount = &request.PaidAmount
+
+	order.ChangeAmount = &change
+
+	order.PaidAt = &now
+
+	order.Status = OrderPaid
+
+	if err := s.repository.Update(
+		ctx,
+		order,
+	); err != nil {
+
+		return nil, err
+	}
+	return order, nil
 }
