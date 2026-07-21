@@ -87,16 +87,26 @@ func (s *service) GetActiveSession(
 func (s *service) CloseSession(
 	ctx context.Context,
 	request CloseSessionRequest,
-) (*Session, error) {
+) (*Session, *Summary, error) {
 
 	// Business Validation
 	if request.ClosingCash < 0 {
-		return nil, sharederrors.ErrInvalidClosingCash
+		return nil, nil, sharederrors.ErrInvalidClosingCash
 	}
 
+	// Ambil session yang sedang aktif
 	session, err := s.repository.GetActive(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	// Ambil ringkasan transaksi sebelum session ditutup
+	summary, err := s.repository.GetSummary(
+		ctx,
+		session.ID.String(),
+	)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	now := time.Now()
@@ -105,14 +115,9 @@ func (s *service) CloseSession(
 	session.ClosingCash = &request.ClosingCash
 	session.ClosedAt = &now
 
-	if err := s.repository.Update(
-		ctx,
-		session,
-	); err != nil {
-
-		return nil, err
-
+	if err := s.repository.Update(ctx, session); err != nil {
+		return nil, nil, err
 	}
 
-	return session, nil
+	return session, summary, nil
 }

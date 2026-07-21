@@ -148,9 +148,7 @@ func (h *Handler) CloseSession(
 
 	var request CloseSessionRequest
 
-	if err := c.ShouldBindJSON(
-		&request,
-	); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 
 		response.Error(
 			c,
@@ -160,7 +158,6 @@ func (h *Handler) CloseSession(
 		)
 
 		return
-
 	}
 
 	if err := sharedvalidator.Validate(request); err != nil {
@@ -171,10 +168,9 @@ func (h *Handler) CloseSession(
 		)
 
 		return
-
 	}
 
-	session, err := h.service.CloseSession(
+	session, summary, err := h.service.CloseSession(
 		ctx,
 		request,
 	)
@@ -192,6 +188,15 @@ func (h *Handler) CloseSession(
 				"No active session",
 			)
 
+		case sharederrors.ErrInvalidClosingCash:
+
+			response.Error(
+				c,
+				http.StatusBadRequest,
+				"INVALID_CLOSING_CASH",
+				err.Error(),
+			)
+
 		default:
 
 			response.Error(
@@ -204,13 +209,14 @@ func (h *Handler) CloseSession(
 		}
 
 		return
-
 	}
 
 	response.Success(
 		c,
 		"Session closed successfully",
-		ToResponse(session),
+		ToCloseSessionResponse(
+			session,
+			summary,
+		),
 	)
-
 }

@@ -67,13 +67,105 @@ func (h *Handler) CreateOrder(
 
 }
 
+func (h *Handler) UpdateItem(
+	c *gin.Context,
+) {
+
+	ctx := c.Request.Context()
+
+	orderID := c.Param("orderId")
+	itemID := c.Param("itemId")
+
+	var request UpdateOrderItemRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"Invalid request body",
+		)
+
+		return
+	}
+
+	if err := sharedvalidator.Validate(request); err != nil {
+
+		response.Validation(
+			c,
+			sharedvalidator.ParseErrors(err),
+		)
+
+		return
+	}
+
+	item, err := h.service.UpdateItem(
+		ctx,
+		orderID,
+		itemID,
+		request,
+	)
+
+	if err != nil {
+
+		switch err {
+
+		case sharederrors.ErrOrderNotFound:
+
+			response.Error(
+				c,
+				http.StatusNotFound,
+				"ORDER_NOT_FOUND",
+				"Order not found",
+			)
+
+		case sharederrors.ErrOrderItemNotFound:
+
+			response.Error(
+				c,
+				http.StatusNotFound,
+				"ORDER_ITEM_NOT_FOUND",
+				"Order item not found",
+			)
+
+		case sharederrors.ErrInsufficientStock:
+
+			response.Error(
+				c,
+				http.StatusBadRequest,
+				"INSUFFICIENT_STOCK",
+				"Insufficient stock",
+			)
+
+		default:
+
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"INTERNAL_SERVER_ERROR",
+				"Failed to update order item",
+			)
+
+		}
+
+		return
+	}
+
+	response.Success(
+		c,
+		"Order item updated successfully",
+		ToOrderItemResponse(item),
+	)
+}
+
 func (h *Handler) AddItem(
 	c *gin.Context,
 ) {
 
 	ctx := c.Request.Context()
 
-	orderID := c.Param("id")
+	orderID := c.Param("orderId")
 
 	var request AddOrderItemRequest
 
@@ -154,7 +246,7 @@ func (h *Handler) GetOrder(
 
 	ctx := c.Request.Context()
 
-	id := c.Param("id")
+	id := c.Param("orderId")
 
 	order, err := h.service.GetOrder(
 		ctx,
@@ -234,7 +326,7 @@ func (h *Handler) PayOrder(
 
 	ctx := c.Request.Context()
 
-	orderID := c.Param("id")
+	orderID := c.Param("orderId")
 
 	var request PaymentRequest
 

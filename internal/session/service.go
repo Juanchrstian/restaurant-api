@@ -15,5 +15,5 @@ type Service interface {
 	CloseSession(
 		ctx context.Context,
 		request CloseSessionRequest,
-	) (*Session, error)
+	) (*Session, *Summary, error)
 }

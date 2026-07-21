@@ -30,6 +30,7 @@ func NewService(
 ) Service {
 
 	return &service{
+		db:             db,
 		repository:     repository,
 		menuRepository: menuRepository,
 		sessionService: sessionService,

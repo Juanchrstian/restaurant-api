@@ -45,10 +45,11 @@ func New(
 		orders := api.Group("/orders")
 		{
 			orders.POST("", orderHandler.CreateOrder)
-			orders.POST("/:id/items", orderHandler.AddItem)
-			orders.GET("/:id", orderHandler.GetOrder)
+			orders.POST("/:orderId/items", orderHandler.AddItem)
+			orders.GET("/:orderId", orderHandler.GetOrder)
+			orders.PATCH("/:orderId/items/:itemId", orderHandler.UpdateItem)
 			orders.DELETE("/:orderId/items/:itemId", orderHandler.RemoveItem)
-			orders.PATCH("/:id/payment", orderHandler.PayOrder)
+			orders.PATCH("/:orderId/payment", orderHandler.PayOrder)
 		}
 
 	}

@@ -16,4 +16,13 @@ type Repository interface {
 		ctx context.Context,
 		session *Session,
 	) error
+
+	GetSummary(
+		ctx context.Context,
+		sessionID string,
+	) (*Summary, error)
+
+	GetAll(
+		ctx context.Context,
+	) ([]Session, error)
 }

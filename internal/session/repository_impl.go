@@ -73,3 +73,74 @@ func (r *repository) Update(
 		Error
 
 }
+
+func (r *repository) GetSummary(
+	ctx context.Context,
+	sessionID string,
+) (*Summary, error) {
+
+	var summary Summary
+
+	err := r.db.
+		WithContext(ctx).
+		Table("orders").
+		Select(`
+			COUNT(*) AS total_orders,
+
+			COALESCE(SUM(total_amount),0) AS gross_sales,
+
+			COALESCE(SUM(
+				CASE
+					WHEN payment_method = 'CASH'
+					THEN total_amount
+					ELSE 0
+				END
+			),0) AS cash_sales,
+
+			COALESCE(SUM(
+				CASE
+					WHEN payment_method = 'QRIS'
+					THEN total_amount
+					ELSE 0
+				END
+			),0) AS qris_sales,
+
+			COALESCE(SUM(
+				CASE
+					WHEN payment_method = 'DEBIT'
+					THEN total_amount
+					ELSE 0
+				END
+			),0) AS debit_sales
+		`).
+		Where(
+			"session_id = ? AND status = ?",
+			sessionID,
+			"PAID",
+		).
+		Scan(&summary).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &summary, nil
+}
+
+func (r *repository) GetAll(
+	ctx context.Context,
+) ([]Session, error) {
+
+	var sessions []Session
+
+	err := r.db.
+		WithContext(ctx).
+		Order("opened_at DESC").
+		Find(&sessions).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return sessions, nil
+}
