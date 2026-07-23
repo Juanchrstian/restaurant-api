@@ -20,4 +20,9 @@ type Repository interface {
 	Update(ctx context.Context, menu *Menu) error
 
 	Delete(ctx context.Context, menu *Menu) error
+
+	GetByIDForUpdate(
+		ctx context.Context,
+		id string,
+	) (*Menu, error)
 }

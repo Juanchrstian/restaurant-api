@@ -6,6 +6,7 @@ import (
 
 	sharederrors "github.com/juanchrstian/restaurant-api/internal/shared/errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type repository struct {
@@ -129,4 +130,26 @@ func (r *repository) WithTransaction(
 		db: tx,
 	}
 
+}
+
+func (r *repository) GetByIDForUpdate(
+	ctx context.Context,
+	id string,
+) (*Menu, error) {
+
+	var menu Menu
+
+	err := r.db.
+		WithContext(ctx).
+		Clauses(clause.Locking{
+			Strength: "UPDATE",
+		}).
+		First(&menu, "id = ?", id).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &menu, nil
 }

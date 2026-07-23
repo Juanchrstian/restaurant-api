@@ -382,7 +382,7 @@ func (s *service) PayOrder(
 
 		for _, item := range items {
 
-			menu, err := menuRepository.GetByID(
+			menu, err := menuRepository.GetByIDForUpdate(
 				ctx,
 				item.MenuID.String(),
 			)
