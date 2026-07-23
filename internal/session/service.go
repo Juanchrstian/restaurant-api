@@ -16,4 +16,8 @@ type Service interface {
 		ctx context.Context,
 		request CloseSessionRequest,
 	) (*Session, *Summary, error)
+
+	GetAll(
+		ctx context.Context,
+	) ([]Session, error)
 }

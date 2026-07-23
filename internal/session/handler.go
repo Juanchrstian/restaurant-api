@@ -220,3 +220,30 @@ func (h *Handler) CloseSession(
 		),
 	)
 }
+
+func (h *Handler) GetSessions(
+	c *gin.Context,
+) {
+
+	ctx := c.Request.Context()
+
+	sessions, err := h.service.GetAll(ctx)
+
+	if err != nil {
+
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"INTERNAL_SERVER_ERROR",
+			"Failed to retrieve sessions",
+		)
+
+		return
+	}
+
+	response.Success(
+		c,
+		"Sessions retrieved successfully",
+		ToSessionHistoryResponses(sessions),
+	)
+}

@@ -63,4 +63,9 @@ type Repository interface {
 		ctx context.Context,
 		orderID string,
 	) ([]OrderItem, error)
+
+	GetAll(
+		ctx context.Context,
+		request GetOrdersRequest,
+	) ([]Order, error)
 }

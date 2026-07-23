@@ -415,3 +415,14 @@ func (s *service) PayOrder(
 
 	return paidOrder, nil
 }
+
+func (s *service) GetAll(
+	ctx context.Context,
+	request GetOrdersRequest,
+) ([]Order, error) {
+
+	return s.repository.GetAll(
+		ctx,
+		request,
+	)
+}

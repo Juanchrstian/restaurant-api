@@ -121,3 +121,10 @@ func (s *service) CloseSession(
 
 	return session, summary, nil
 }
+
+func (s *service) GetAll(
+	ctx context.Context,
+) ([]Session, error) {
+
+	return s.repository.GetAll(ctx)
+}

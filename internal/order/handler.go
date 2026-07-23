@@ -417,3 +417,84 @@ func (h *Handler) PayOrder(
 		ToPaymentResponse(order),
 	)
 }
+
+func (h *Handler) GetOrders(
+	c *gin.Context,
+) {
+
+	ctx := c.Request.Context()
+
+	var request GetOrdersRequest
+
+	if err := c.ShouldBindQuery(&request); err != nil {
+
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"Invalid query parameter",
+		)
+
+		return
+	}
+
+	if request.Page <= 0 {
+		request.Page = 1
+	}
+
+	if request.Limit <= 0 {
+		request.Limit = 10
+	}
+
+	if request.Limit > 100 {
+		request.Limit = 100
+	}
+
+	if request.Sort == "" {
+		request.Sort = "created_at"
+	}
+
+	if request.Order == "" {
+		request.Order = "desc"
+	}
+
+	allowedSort := map[string]bool{
+		"created_at":   true,
+		"total_amount": true,
+		"status":       true,
+	}
+
+	if !allowedSort[request.Sort] {
+		request.Sort = "created_at"
+	}
+
+	switch request.Order {
+	case "asc", "ASC":
+		request.Order = "ASC"
+	default:
+		request.Order = "DESC"
+	}
+
+	orders, err := h.service.GetAll(
+		ctx,
+		request,
+	)
+
+	if err != nil {
+
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"INTERNAL_SERVER_ERROR",
+			"Failed to retrieve orders",
+		)
+
+		return
+	}
+
+	response.Success(
+		c,
+		"Orders retrieved successfully",
+		ToOrderHistoryResponses(orders),
+	)
+}

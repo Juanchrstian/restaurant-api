@@ -181,3 +181,59 @@ func ToPaymentResponse(
 		Status: string(order.Status),
 	}
 }
+
+type OrderHistoryResponse struct {
+	ID            string    `json:"id"`
+	SessionID     string    `json:"session_id"`
+	Status        string    `json:"status"`
+	PaymentMethod *string   `json:"payment_method,omitempty"`
+	TotalAmount   int64     `json:"total_amount"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+func ToOrderHistoryResponse(
+	order Order,
+) OrderHistoryResponse {
+
+	var paymentMethod *string
+
+	if order.PaymentMethod != nil {
+		pm := string(*order.PaymentMethod)
+		paymentMethod = &pm
+	}
+
+	return OrderHistoryResponse{
+		ID:            order.ID.String(),
+		SessionID:     order.SessionID.String(),
+		Status:        string(order.Status),
+		PaymentMethod: paymentMethod,
+		TotalAmount:   order.TotalAmount,
+		CreatedAt:     order.CreatedAt,
+	}
+}
+
+func ToOrderHistoryResponses(
+	orders []Order,
+) []OrderHistoryResponse {
+
+	responses := make([]OrderHistoryResponse, 0, len(orders))
+
+	for _, order := range orders {
+		responses = append(
+			responses,
+			ToOrderHistoryResponse(order),
+		)
+	}
+
+	return responses
+}
+
+type GetOrdersRequest struct {
+	Page          int    `form:"page"`
+	Limit         int    `form:"limit"`
+	Status        string `form:"status"`
+	PaymentMethod string `form:"payment_method"`
+	SessionID     string `form:"session_id"`
+	Sort          string `form:"sort"`
+	Order         string `form:"order"`
+}

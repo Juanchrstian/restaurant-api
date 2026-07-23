@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"fmt"
 
 	sharederrors "github.com/juanchrstian/restaurant-api/internal/shared/errors"
 	"gorm.io/gorm"
@@ -200,4 +201,56 @@ func (r *repository) GetItems(
 	}
 
 	return items, nil
+}
+
+func (r *repository) GetAll(
+	ctx context.Context,
+	request GetOrdersRequest,
+) ([]Order, error) {
+
+	var orders []Order
+
+	db := r.db.WithContext(ctx)
+
+	if request.Status != "" {
+		db = db.Where(
+			"status = ?",
+			request.Status,
+		)
+	}
+
+	if request.PaymentMethod != "" {
+		db = db.Where(
+			"payment_method = ?",
+			request.PaymentMethod,
+		)
+	}
+
+	if request.SessionID != "" {
+		db = db.Where(
+			"session_id = ?",
+			request.SessionID,
+		)
+	}
+
+	orderBy := fmt.Sprintf(
+		"%s %s",
+		request.Sort,
+		request.Order,
+	)
+
+	offset := (request.Page - 1) * request.Limit
+
+	err := db.
+		Preload("Items").
+		Order(orderBy).
+		Offset(offset).
+		Limit(request.Limit).
+		Find(&orders).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }

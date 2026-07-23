@@ -36,4 +36,9 @@ type Service interface {
 		orderID string,
 		request PaymentRequest,
 	) (*Order, error)
+
+	GetAll(
+		ctx context.Context,
+		request GetOrdersRequest,
+	) ([]Order, error)
 }

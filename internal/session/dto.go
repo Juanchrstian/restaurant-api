@@ -1,6 +1,10 @@
 package session
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type OpenSessionRequest struct {
 	OpenedBy    string `json:"opened_by" validate:"required,max=100"`
@@ -114,4 +118,51 @@ func ToCloseSessionResponse(
 
 		DebitSales: summary.DebitSales,
 	}
+}
+
+type SessionHistoryResponse struct {
+	SessionID uuid.UUID `json:"session_id"`
+	OpenedBy  string    `json:"opened_by"`
+	Status    string    `json:"status"`
+
+	OpeningCash int64  `json:"opening_cash"`
+	ClosingCash *int64 `json:"closing_cash,omitempty"`
+
+	OpenedAt time.Time  `json:"opened_at"`
+	ClosedAt *time.Time `json:"closed_at,omitempty"`
+}
+
+func ToSessionHistoryResponse(
+	session Session,
+) SessionHistoryResponse {
+
+	return SessionHistoryResponse{
+		SessionID:   session.ID,
+		OpenedBy:    session.OpenedBy,
+		Status:      string(session.Status),
+		OpeningCash: session.OpeningCash,
+		ClosingCash: session.ClosingCash,
+		OpenedAt:    session.OpenedAt,
+		ClosedAt:    session.ClosedAt,
+	}
+}
+
+func ToSessionHistoryResponses(
+	sessions []Session,
+) []SessionHistoryResponse {
+
+	responses := make(
+		[]SessionHistoryResponse,
+		0,
+		len(sessions),
+	)
+
+	for _, session := range sessions {
+		responses = append(
+			responses,
+			ToSessionHistoryResponse(session),
+		)
+	}
+
+	return responses
 }

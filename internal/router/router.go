@@ -40,6 +40,7 @@ func New(
 			sessions.POST("", sessionHandler.OpenSession)
 			sessions.GET("/active", sessionHandler.GetActiveSession)
 			sessions.PATCH("/close", sessionHandler.CloseSession)
+			sessions.GET("", sessionHandler.GetSessions)
 		}
 
 		orders := api.Group("/orders")
@@ -50,6 +51,7 @@ func New(
 			orders.PATCH("/:orderId/items/:itemId", orderHandler.UpdateItem)
 			orders.DELETE("/:orderId/items/:itemId", orderHandler.RemoveItem)
 			orders.PATCH("/:orderId/payment", orderHandler.PayOrder)
+			orders.GET("", orderHandler.GetOrders)
 		}
 
 	}
